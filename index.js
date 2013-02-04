@@ -21,7 +21,10 @@ var slice = function(b, start, end) {
 };
 
 module.exports = function(states, callback) {
-  var state = Object.keys(states)[0];
+  var state = typeof states.init !== 'undefined' ?
+              'init' :
+              Object.keys(states)[0];
+
   var cache = null;
   var ret = function(data) {
 
