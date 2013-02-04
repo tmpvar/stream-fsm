@@ -35,6 +35,10 @@ module.exports = function(states, callback) {
     do {
       consumed = states[state].call(ret, slice(data, totalConsumed));
 
+      if (typeof consumed === 'function') {
+        consumed = consumed.call(ret, slice(data, totalConsumed));
+      }
+
       if (typeof consumed !== 'undefined') {
         totalConsumed += consumed;
       } else {

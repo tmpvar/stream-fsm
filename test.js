@@ -45,6 +45,41 @@ test("test want (buffer)", function(t) {
   t.end();
 });
 
+test('calculated want', function(t) {
+  var out = [], total, length = 0;
+  var stream = fsm({
+    header : fsm.want(1, function(data) {
+      total = parseInt(data, 10);
+      this.change('entry_header');
+    }),
+    entry_header : fsm.want(1, function(data) {
+      length = parseInt(data, 10);
+      this.change('entry');
+    }),
+    entry : function(data) {
+      return fsm.want(length, function(val) {
+        out.push(val);
+        total--;
+        if (total <= 0) {
+          this.done();
+        } else {
+          this.change('entry_header');
+          return val.length;
+        }
+      });
+    }
+  }, function() {
+    t.equal(out.length, 3);
+    t.equal(out[0], 'hello');
+    t.equal(out[1], 'world');
+    t.equal(out[2], 'goodbye');
+    t.end();
+  });
+
+  stream.write("35hello5world7goodbye");
+
+});
+
 test('state change', function(t) {
   var out = {
     start: null,
