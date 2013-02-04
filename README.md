@@ -10,7 +10,7 @@ A streaming finite state machine
 
 ```javascript
 
-var fsm = require('./');
+var fsm = require('stream-fsm');
 
 var out = {};
 var stream = fsm({
