@@ -4,7 +4,7 @@
   "description": "streaming finite state machine",
   "main": "index.js",
   "scripts": {
-    "test": "tap test.js"
+    "test": "tap -dd test.js"
   },
   "repository": {
     "type": "git",

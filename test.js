@@ -1,7 +1,7 @@
 var test = require('tap').test,
     fsm = require('./');
 
-test("fsm: test want (string)", function(t) {
+test("test want (string)", function(t) {
   var count = 0;
   var res = '';
   var fn = fsm.want(4, function(data) {
@@ -21,7 +21,7 @@ test("fsm: test want (string)", function(t) {
 });
 
 
-test("fsm: test want (string)", function(t) {
+test("test want (buffer)", function(t) {
   var count = 0;
   var res;
   var fn = fsm.want(4, function(data) {
@@ -43,4 +43,34 @@ test("fsm: test want (string)", function(t) {
   t.equal(res[3], 4);
 
   t.end();
+});
+
+test('state change', function(t) {
+  var out = {
+    start: null,
+    next : null,
+    last : null
+  };
+
+  var stream = fsm({
+    start : fsm.want(5, function(data) {
+      out.start = data;
+      this.change('next');
+    }),
+    next : fsm.want(4, function(data) {
+      out.next = data;
+      this.change('last');
+    }),
+    last : fsm.want(4, function(data) {
+      out.last = data;
+      this.done();
+    })
+  }, function() {
+    t.equal(out.start, 'start');
+    t.equal(out.next, 'next');
+    t.equal(out.last, 'last');
+    t.end();
+  });
+
+  stream.write('startnextlast');
 });
