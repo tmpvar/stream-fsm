@@ -1,0 +1,29 @@
+{
+  "name": "stream-fsm",
+  "version": "0.1.0",
+  "description": "streaming finite state machine",
+  "main": "index.js",
+  "scripts": {
+    "test": "tap test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/tmpvar/stream-fsm.git"
+  },
+  "keywords": [
+    "fsm",
+    "finite",
+    "state",
+    "machine",
+    "stream"
+  ],
+  "author": "Elijah Insua <tmpvar@gmail.com>",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "dependencies": {
+    "through": "~2.1.0"
+  },
+  "devDependencies" : {
+    "tap" : "0.4.0 "
+  }
+}
