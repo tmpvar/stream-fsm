@@ -1,5 +1,6 @@
 var test = require('tap').test,
-    fsm = require('./');
+    fsm = require('./'),
+    fs = require('fs');
 
 test("test want (string)", function(t) {
   var count = 0;
@@ -10,10 +11,10 @@ test("test want (string)", function(t) {
     res+=data;
   });
 
-  t.equal(fn('1'), 0, '1/4');
-  t.equal(fn('2'), 0, '2/4');
-  t.equal(fn('3'), 0, '3/4');
-  t.equal(fn('4'), 4, '4/4'); // consumed 4 bytes
+  t.equal(fn('1'), false, '1/4');
+  t.equal(fn('12'), false, '2/4');
+  t.equal(fn('123'), false, '3/4');
+  t.equal(fn('1234'), 4, '4/4'); // consumed 4 bytes
 
   t.equal(count, 1);
   t.equal(res, '1234');
@@ -30,10 +31,10 @@ test("test want (buffer)", function(t) {
     res = data;
   });
 
-  t.equal(fn(new Buffer([1])), 0);
-  t.equal(fn(new Buffer([2])), 0);
-  t.equal(fn(new Buffer([3])), 0);
-  t.equal(fn(new Buffer([4])), 4); // consumed 4 bytes
+  t.equal(fn(new Buffer([1])), false);
+  t.equal(fn(new Buffer([1,2])), false);
+  t.equal(fn(new Buffer([1,2,3])), false);
+  t.equal(fn(new Buffer([1,2,3,4])), 4); // consumed 4 bytes
 
   t.equal(count, 1);
 
@@ -112,21 +113,74 @@ test('state change', function(t) {
 
 test('queue', function(t) {
 
-  var stream = fsm({
-    init : function(data) {
-      this.queue(data);
-      return data.length;
-    }
-  });
   var count = 0;
-  stream.on('data', function(d) {
-    count += d.length;
+  var stream = fsm({
+    init : fsm.want(1, function(data) {
+      count += data.length;
+      this.change('next');
+    }),
+    next : fsm.want(1, function(data) {
+      count += data.length;
+      this.change('init');
+    })
   });
 
   stream.on('end', function() {
-    t.equal(5, count);
-    t.end();
+    fs.stat(__filename, function(err, stats) {
+      t.equal(stats.size, count);
+      t.end();
+    })
   });
 
-  stream.end('hello');
+  fs.createReadStream(__filename).pipe(stream);
+});
+
+test('want loop', function(t) {
+
+  var count = 0;
+  var str = '';
+  var stream = fsm({
+    init : fsm.want(5, function(data) {
+      str = data.toString();
+      this.done();
+    })
+  }, function() {
+    t.equal(str, 'hello');
+    t.end();
+  }); 
+
+  var send = 'hello'.split(''); 
+  setTimeout(function tick() {
+    stream.write(send.shift());
+    if (send.length) {
+      setTimeout(tick, 10);
+    }
+  }, 100);
+});
+
+test('want peek', function(t) {
+
+  var count = 0;
+  var str = '';
+  var stream = fsm({
+    init : fsm.want(5, function(data) {
+      this.change('consume');
+      return 0; // just peeking at the data..
+    }),
+    consume : fsm.want(5, function(data) {
+      t.equal(data, 'hello');
+      this.done();
+    })
+  }, function() {
+    t.end();
+  }); 
+
+
+  var send = 'hello'.split(''); 
+  setTimeout(function tick() {
+    stream.write(send.shift());
+    if (send.length) {
+      setTimeout(tick, 10);
+    }
+  }, 100);
 });

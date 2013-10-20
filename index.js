@@ -25,7 +25,7 @@ module.exports = function(states, callback) {
               'init' :
               Object.keys(states)[0];
 
-  var cache = null;
+  var cache = null, stateFn = states[state];
   var ret = function(data) {
 
     if (!data) { return; }
@@ -33,13 +33,25 @@ module.exports = function(states, callback) {
     var initialState = state;
     var consumed, totalConsumed = 0;
 
+    if (cache) {
+      data = join(cache, data);
+      cache = null;
+    }
+
     // todo: catch infinite loops
     // ie: if you didnt consume any bytes and didn't change state
     do {
-      consumed = states[state].call(ret, slice(data, totalConsumed));
+      consumed = stateFn.call(ret, slice(data, totalConsumed));
+
+      // pending more data
+      if (consumed === false) {
+        cache = join(cache, data);
+        break;
+      }
 
       if (typeof consumed === 'function') {
-        consumed = consumed.call(ret, slice(data, totalConsumed));
+        stateFn = consumed;
+        continue;
       }
 
       if (typeof consumed !== 'undefined') {
@@ -52,15 +64,12 @@ module.exports = function(states, callback) {
 
   ret.change = function(newState) {
     state = newState;
+    stateFn = states[state];
   };
 
   ret.done = function() {
     callback && callback.apply(this, arguments);
   };
-
-  if (state === 'init') {
-    ret();
-  }
 
   var t = through(ret);
   ret.queue = t.queue.bind(t);
@@ -71,14 +80,8 @@ module.exports = function(states, callback) {
 module.exports.want = function(count, fn) {
 
   fn.callCount = 0;
-  var cache = null;
+
   return function(data) {
-
-    if (cache) {
-      data = join(cache, data);
-      cache = null;
-    }
-
     if (data.length >= count) {
 
       var ret = fn.call(this, slice(data, 0, count), fn.callCount);
@@ -89,8 +92,7 @@ module.exports.want = function(count, fn) {
       return ret;
 
     } else {
-      cache = join(cache, data);
-      return 0;
+      return false;
     }
   };
 };
