@@ -62,7 +62,9 @@ module.exports = function(states, callback) {
     ret();
   }
 
-  return through(ret);
+  var t = through(ret);
+  ret.queue = t.queue.bind(t);
+  return t;
 };
 
 

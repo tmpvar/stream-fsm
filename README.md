@@ -39,6 +39,25 @@ stream.write('startnextlast');
 
 ```
 
+## Passthrough
+
+```javascript
+
+var stream = fsm({
+  init : function(d) {
+   
+    // queue data to be written on writable portion of the stream
+    this.queue(d);
+
+    // this is required for tracking
+    // return the number of bytes consumed
+    // Note: fsm.want does this already
+    return d.length;
+  }
+});
+
+```
+
 ## License
 
 MIT

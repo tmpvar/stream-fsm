@@ -109,3 +109,24 @@ test('state change', function(t) {
 
   stream.write('startnextlast');
 });
+
+test('queue', function(t) {
+
+  var stream = fsm({
+    init : function(data) {
+      this.queue(data);
+      return data.length;
+    }
+  });
+  var count = 0;
+  stream.on('data', function(d) {
+    count += d.length;
+  });
+
+  stream.on('end', function() {
+    t.equal(5, count);
+    t.end();
+  });
+
+  stream.end('hello');
+});

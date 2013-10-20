@@ -1,6 +1,6 @@
 {
   "name": "stream-fsm",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "streaming finite state machine",
   "main": "index.js",
   "scripts": {
