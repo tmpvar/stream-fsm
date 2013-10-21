@@ -184,3 +184,29 @@ test('want peek', function(t) {
     }
   }, 100);
 });
+
+test('run to completion', function(t) {
+
+  var count = 0;
+  var str = '';
+  var want = ['22', '33'];
+  var stream = fsm({
+    init : fsm.want(1, function(d) {
+      this.change('next');
+    }),
+    next : fsm.want(2, function(d) {
+      t.equal(d, want.shift());
+      count+=d.length;
+    })
+  }, function() {
+
+  });
+
+  stream.write('12');
+  process.nextTick(function() {
+    stream.write('233');
+    t.equal(count, 4);
+    stream.end();
+    t.end();
+  });
+});
