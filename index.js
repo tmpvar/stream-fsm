@@ -28,24 +28,21 @@ module.exports = function(states, callback) {
   var cache = null, stateFn = states[state];
   var ret = function(data) {
 
-    if (!data) { return; }
-
-    var initialState = state;
-    var consumed, totalConsumed = 0;
+    var consumed;
 
     if (cache) {
       data = join(cache, data);
       cache = null;
     }
 
-    // todo: catch infinite loops
-    // ie: if you didnt consume any bytes and didn't change state
+    if (!data) { return; }
+
     do {
-      consumed = stateFn.call(ret, slice(data, totalConsumed));
+      consumed = stateFn.call(ret, data);
 
       // pending more data
       if (consumed === false) {
-        cache = join(cache, data);
+        cache = data;
         break;
       }
 
@@ -55,11 +52,11 @@ module.exports = function(states, callback) {
       }
 
       if (typeof consumed !== 'undefined') {
-        totalConsumed += consumed;
+        data = slice(data, consumed);
       } else {
         throw new Error('Please return the number of bytes consumed');
       }
-    } while (totalConsumed < data.length);
+    } while (data.length);
   };
 
   ret.change = function(newState) {
@@ -68,7 +65,9 @@ module.exports = function(states, callback) {
   };
 
   ret.done = function() {
-    callback && callback.apply(this, arguments);
+    if (callback) {
+      callback.apply(this, arguments);
+    }
   };
 
   var t = through(ret);
