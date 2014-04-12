@@ -42,7 +42,6 @@ module.exports = function(states, callback) {
 
       // pending more data
       if (consumed === false) {
-        console.log('not consumed', data.toString());
         cache = data;
         break;
       }
