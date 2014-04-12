@@ -45,7 +45,7 @@ stream.write('startnextlast');
 
 var stream = fsm({
   init : function(d) {
-   
+
     // queue data to be written on writable portion of the stream
     this.queue(d);
 
@@ -57,6 +57,11 @@ var stream = fsm({
 });
 
 ```
+
+## Other methods
+
+`stream.fsm.cache`() - returns the data that is currently held in the cache
+`stream.fsm.mode`() - returns current mode of the fsm
 
 ## License
 

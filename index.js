@@ -42,6 +42,7 @@ module.exports = function(states, callback) {
 
       // pending more data
       if (consumed === false) {
+        console.log('not consumed', data.toString());
         cache = data;
         break;
       }
@@ -70,7 +71,18 @@ module.exports = function(states, callback) {
     }
   };
 
+  ret.mode = function() {
+    return state;
+  };
+
+  ret.cache = function() {
+    return cache;
+  };
+
   var t = through(ret);
+
+  t.fsm = ret;
+
   ret.queue = t.queue.bind(t);
   return t;
 };

@@ -147,9 +147,9 @@ test('want loop', function(t) {
   }, function() {
     t.equal(str, 'hello');
     t.end();
-  }); 
+  });
 
-  var send = 'hello'.split(''); 
+  var send = 'hello'.split('');
   setTimeout(function tick() {
     stream.write(send.shift());
     if (send.length) {
@@ -173,10 +173,10 @@ test('want peek', function(t) {
     })
   }, function() {
     t.end();
-  }); 
+  });
 
 
-  var send = 'hello'.split(''); 
+  var send = 'hello'.split('');
   setTimeout(function tick() {
     stream.write(send.shift());
     if (send.length) {
@@ -209,4 +209,38 @@ test('run to completion', function(t) {
     stream.end();
     t.end();
   });
+});
+
+
+// Allow a user to get at the queued data
+test('stream#cache - string', function(t) {
+  var stream = fsm({
+    init : fsm.want(10, function(d) {
+      this.done();
+    })
+  });
+
+  var string = '12345678';
+  stream.write(string);
+  t.equal(stream.fsm.cache(), string)
+  t.end();
+});
+
+// Allow a user to get at the queued data
+test('stream#cache - string', function(t) {
+  var stream = fsm({
+    init : fsm.want(10, function(d) {
+      this.change('another');
+    }),
+    another : function(d) { return d.length; }
+  });
+
+  var string = '12345678';
+  stream.write(string);
+  t.equal(stream.fsm.mode(), 'init')
+
+  stream.write(string);
+  t.equal(stream.fsm.mode(), 'another')
+
+  t.end();
 });
